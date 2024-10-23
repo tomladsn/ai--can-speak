@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button class="btn" id="mic">
+        <img src="icon.png" alt="mic" id="mic-icon">
+    </button>
+    <audio class="audio" controls></audio>
+
+    <textarea id="text" class="text-input" placeholder="Enter text here"></textarea>
+    <div class="accent-selection">
+        <label for="accent-select">Choose an English accent:</label>
+        <select id="accent-select" class="accent-select">
+            <option value="british">British</option>
+            <option value="american">American</option>
+            <option value="australian">Australian</option>
+            <option value="irish">Irish</option>
+            <option value="scottish">Scottish</option>
+            <option value="welsh">Welsh</option>
+            <option value="canadian">Canadian</option>
+            <option value="newzealand">New Zealand</option>
+            <option value="southafrican">South African</option>
+        </select>
+    </div>
+    <button id="submit-btn" class="btn">Submit</button>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
