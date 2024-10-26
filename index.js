@@ -1,7 +1,4 @@
-// Instead of importing Ollama, we'll create a mock function for n
-// import { Ollama } from 'ollama';
 
-// Mocking the Ollama chat function
 let conversationHistory = [];
 
 export async function chatWithLlama(userInput) {

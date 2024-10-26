@@ -1,60 +1,47 @@
 import { chatWithLlama } from './index.js';
-
-
-const textarea = document.getElementById('text');
-const accentSelect = document.getElementById('accent-select');
-const speechBtn = document.getElementById('submit-btn');
 const mic = document.getElementById('mic');
-
+const micIcon = document.getElementById('mic-icon');
 let isRecording = false;
 let recognition;
+let voicesLoaded = false;
+let availableVoices = [];
 
-function textToSpeech(text, accent) {
-    console.log(`Speaking: "${text}" with accent: ${accent}`);
-    let utterance = new SpeechSynthesisUtterance(text);
-    let voices = speechSynthesis.getVoices();
-    
-    let voice = voices.find(v => v.lang.includes(accent));
-    if (voice) {
-        utterance.voice = voice;
-    }
-
-    speechSynthesis.speak(utterance);
+// Preload the voices to ensure there's no delay when TTS is invoked
+function loadVoices() {
+    availableVoices = speechSynthesis.getVoices();
+    console.log("Available Voices:", availableVoices);
 }
 
-speechBtn.addEventListener('click', async e => {
-    e.preventDefault();
-    if (textarea.value !== '') {
-        let selectedAccent = accentSelect.value;
-        let accentCode = 'en-GB';  // Default to British English
-        switch (selectedAccent) {
-            case 'british':
-                accentCode = 'en-GB';
-                break;
-            case 'american':
-                accentCode = 'en-US';
-                break;
-            case 'australian':
-                accentCode = 'en-AU';
-                break;
-            case 'irish':
-                accentCode = 'en-IE';
-                break;
-            case 'scottish':
-                accentCode = 'en-SC';
-                break;
-            default:
-                accentCode = 'en-GB';
-        }
-        console.log(`Submit button clicked. Text: "${textarea.value}"`);
-        textToSpeech(textarea.value, accentCode);
-    }
-});
+// Preload voices when the page is loaded to avoid delays in TTS
+window.speechSynthesis.onvoiceschanged = loadVoices;
 
-// Ensure voices are loaded
-speechSynthesis.onvoiceschanged = () => {
-    speechSynthesis.getVoices();
-};
+function textToSpeech(text) {
+    if (availableVoices.length === 0) {
+        console.error("No voices loaded. Please try again later.");
+        return;
+    }
+
+    console.log(`Speaking: "${text}"`);
+
+    let utterance = new SpeechSynthesisUtterance(text);
+
+    // Find a specific female voice (e.g., "Google UK English Female" or "Samantha")
+    let selectedVoice = availableVoices.find(voice =>
+        voice.name.includes('Google UK English Female') || // Replace with your desired voice name
+        voice.name.includes('Samantha') || // Example female voice on some systems
+        (voice.lang.includes('en') && voice.gender === 'female') // Use gender and language check
+    );
+
+    if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        console.log(`Selected Voice: ${selectedVoice.name}`);
+    } else {
+        console.warn("Female voice not found. Using the default voice.");
+    }
+
+    // Speak the response
+    speechSynthesis.speak(utterance);
+}
 
 mic.addEventListener('click', function() {
     if (!isRecording) {
@@ -67,7 +54,7 @@ mic.addEventListener('click', function() {
 function startRecording() {
     console.log("Starting recording...");
     isRecording = true;
-    mic.textContent = "Stop Recording";
+    micIcon.src = "anim.gif";
 
     if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
         console.error("Speech recognition is not supported in this browser.");
@@ -98,7 +85,7 @@ function startRecording() {
 function stopRecording() {
     console.log("Stopping recording...");
     isRecording = false;
-    mic.textContent = "Start Recording";
+    micIcon.src = "icon.png";
     if (recognition) {
         recognition.stop();
     }
@@ -109,17 +96,25 @@ async function handleRecognitionResult(e) {
         .map(result => result[0])
         .map(result => result.transcript)
         .join('');
-    
-    textarea.value = transcript;
+
     console.log(`Recognized: "${transcript}"`);
 
     if (e.results[0].isFinal) {
         console.log("Speech recognition final. Sending to Llama...");
+
+        // Send recognized transcript directly to Llama
         const llamaResponse = await chatWithLlama(transcript);
-        
+
         console.log(`Llama response: "${llamaResponse}"`);
-        textarea.value = llamaResponse;
-        
-        textToSpeech(llamaResponse, accentSelect.value);
+
+        // Immediately send Llama's response to TTS
+        textToSpeech(llamaResponse);
     }
 }
+
+// Preload voices when the page is loaded to avoid delays in TTS
+document.addEventListener('DOMContentLoaded', () => {
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        loadVoices();
+    }
+});
