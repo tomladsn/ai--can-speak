@@ -108,6 +108,10 @@ function stopRecording() {
     }
 }
 
+const API_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3000' 
+    : 'https://your-vercel-domain.vercel.app';
+
 async function handleRecognitionResult(e) {
     const transcript = Array.from(e.results)
         .map(result => result[0])
@@ -116,7 +120,7 @@ async function handleRecognitionResult(e) {
 
     if (e.results[0].isFinal) {
         try {
-            const response = await fetch('http://localhost:3000/api/chat', {
+            const response = await fetch(`${API_URL}/api/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
