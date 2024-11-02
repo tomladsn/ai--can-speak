@@ -1,24 +1,40 @@
+:root {
+    --color-primary: #031124;
+    --color-secondary: #99ADEF;
+    --color-accent: #C4DCFF;
+    --color-text: #FFFFFF;
+    --color-placeholder: #99ADEF;
+    --color-bg-primary: rgba(255, 255, 255, 0.068);
+    --color-bg-secondary: rgba(255, 255, 255, 0.1);
+    --color-shadow: rgba(42, 51, 82, 0.116);
+    --color-shadow-hover: rgba(46, 45, 92, 0.4);
+    --color-shadow-focus: rgba(196, 220, 255, 0.5);
+    --font-family: 'Poppins', sans-serif;
+    --transition-duration: 0.3s;
+    --transition-easing: ease;
+}
+
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
+    background: radial-gradient(circle at 50% 100%, var(--color-primary) 14%, #FFFFFF 16%, var(--color-secondary) 17%, var(--color-primary) 20%);
+    background-size: cover;
+    background-position: center;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
-    background: radial-gradient(circle at 50% 100%, #031124 14%, #FFFFFF 16%, #99ADEF 17%, #031124 20%);
-    background-size: cover;
-    background-position: center;
 }
 
 .btn {
     border: none;
-    background-color: rgba(255, 255, 255, 0.068);
+    background-color: var(--color-bg-primary);
     cursor: pointer;
     padding: 10px;
     border-radius: 50%;
-    box-shadow: 0 2px 5px rgba(42, 51, 82, 0.116);
-    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px var(--color-shadow);
+    transition: all var(--transition-duration) var(--transition-easing);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -26,7 +42,7 @@ body {
 
 .btn:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(46, 45, 92, 0.4);
+    box-shadow: 0 4px 8px var(--color-shadow-hover);
 }
 
 .btn img {
@@ -35,38 +51,36 @@ body {
     border-radius: 50%;
 }
 
-.audio {
-    margin-top: 20px;
-    width: 300px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3);
-}
-
-.text-input {
-    display: none;
+.audio,
+.text-input,
+.accent-select {
     margin-top: 20px;
     width: 300px;
     padding: 10px;
     font-size: 16px;
-    border: 2px solid #99ADEF;
+    border: 2px solid var(--color-secondary);
     border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #FFFFFF;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text);
+    transition: border-color var(--transition-duration) var(--transition-easing),
+                box-shadow var(--transition-duration) var(--transition-easing);
+    box-shadow: 0 2px 5px var(--color-shadow);
+}
+
+.text-input {
+    display: none;
     resize: vertical;
     min-height: 100px;
-    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3);
 }
 
 .text-input:focus {
     outline: none;
-    border-color: #C4DCFF;
-    box-shadow: 0 0 5px rgba(196, 220, 255, 0.5);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 5px var(--color-shadow-focus);
 }
 
 .text-input::placeholder {
-    color: #99ADEF;
+    color: var(--color-placeholder);
     font-style: italic;
 }
 
@@ -81,20 +95,12 @@ body {
 .accent-selection label {
     margin-bottom: 5px;
     font-size: 14px;
-    color: #FFFFFF;
+    color: var(--color-text);
     font-weight: bold;
 }
 
 .accent-select {
     display: none;
-    width: 300px;
-    padding: 10px;
-    font-size: 16px;
-    border: 2px solid #99ADEF;
-    border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #FFFFFF;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -102,40 +108,41 @@ body {
     background-repeat: no-repeat;
     background-position: right 10px top 50%;
     background-size: 20px auto;
-    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3);
 }
 
 .accent-select:focus {
     outline: none;
-    border-color: #C4DCFF;
-    box-shadow: 0 0 5px rgba(196, 220, 255, 0.5);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 5px var(--color-shadow-focus);
 }
 
 .accent-select:hover {
-    border-color: #FFFFFF;
+    border-color: var(--color-text);
 }
 
 #submit-btn {
     margin-top: 20px;
     padding: 10px 20px;
     font-size: 16px;
-    color: #031124;
-    background-color: #99ADEF;
+    color: var(--color-primary);
+    background-color: var(--color-secondary);
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3);
+    transition: background-color var(--transition-duration) var(--transition-easing),
+                transform var(--transition-duration) var(--transition-easing);
+    box-shadow: 0 2px 5px var(--color-shadow);
 }
 
 #submit-btn:hover {
-    background-color: #C4DCFF;
+    background-color: var(--color-accent);
     transform: translateY(-2px);
 }
 
 #submit-btn:active {
     transform: translateY(0);
 }
+
 .Rectangle1 {
     width: 450px;
     height: 473px;
@@ -182,7 +189,7 @@ body {
     transform: translate(-50%, -50%);
 }
 
-.anim{
+.anim {
     margin: auto;
     position: absolute;
     width: 450px;
@@ -191,4 +198,3 @@ body {
     filter: saturate(0.1);
     top: 200px;
 }
-

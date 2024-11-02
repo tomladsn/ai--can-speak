@@ -1,4 +1,3 @@
-import { chatWithLlama } from './index.js';
 const mic = document.getElementById('mic');
 const micIcon = document.getElementById('mic-icon');
 let isRecording = false;
@@ -100,15 +99,33 @@ async function handleRecognitionResult(e) {
     console.log(`Recognized: "${transcript}"`);
 
     if (e.results[0].isFinal) {
-        console.log("Speech recognition final. Sending to Llama...");
+        console.log("Speech recognition final. Sending to API...");
+        try {
+            const response = await fetch('http://localhost:3000/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ message: transcript })
+            });
 
-        // Send recognized transcript directly to Llama
-        const llamaResponse = await chatWithLlama(transcript);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-        console.log(`Llama response: "${llamaResponse}"`);
+            const data = await response.json();
+            console.log(`API response: "${data.response}"`);
 
-        // Immediately send Llama's response to TTS
-        textToSpeech(llamaResponse);
+            if (data.response) {
+                textToSpeech(data.response);
+            } else {
+                textToSpeech("I received an empty response from the server.");
+            }
+        } catch (error) {
+            console.error('Error communicating with API:', error);
+            textToSpeech("Sorry, I encountered an error processing your request.");
+        }
     }
 }
 
