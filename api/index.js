@@ -10,9 +10,10 @@ const app = express();
 
 // Configure CORS more explicitly
 app.use(cors({
-    origin: '*', // For development. In production, set to your specific domain
-    methods: ['POST', 'OPTIONS'], // Explicitly allow POST and OPTIONS
-    allowedHeaders: ['Content-Type', 'Accept', 'Session-ID']
+    origin: ['http://127.0.0.1:5500', 'http://localhost:5500', 'https://your-domain.vercel.app'],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Accept', 'Session-ID'],
+    credentials: true
 }));
 
 // Important: This needs to come before your routes
@@ -68,8 +69,13 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
+// Add a test endpoint
+app.get('/test', (req, res) => {
+    res.json({ message: 'Server is running!' });
+});
+
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
