@@ -4,7 +4,8 @@ const ELEVENLABS_API_KEY = "sk_b93f8fe4ddadcad7439ed5756510eb9b08c60dd1cb561346"
 
 // Add these variables at the top with your other declarations
 let silenceTimer = null;
-const SILENCE_DURATION = 2000; // 2 seconds of silence before stopping
+const SILENCE_DURATION = 1500; // 1.5 seconds of silence before stopping
+let isProcessing = false;  // To track when AI is processing/speaking
 
 // 2. DOM elements and basic variables
 const mic = document.getElementById('mic');
@@ -20,6 +21,7 @@ let availableVoices = [];
 // 3. Voice and speech functions
 async function textToSpeechElevenLabs(text) {
     try {
+        isProcessing = true;  // Prevent recording during speech
         console.log('Generating speech with ElevenLabs:', text);
         
         const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/CYw3kZ02Hs0563khs1Fj', {
@@ -46,56 +48,51 @@ async function textToSpeechElevenLabs(text) {
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
-        await audio.play();
         
-        console.log('Audio generated and playing');
+        // Wait for audio to finish playing
+        await new Promise((resolve) => {
+            audio.onended = resolve;
+            audio.play();
+        });
+        
+        console.log('Audio finished playing');
+        isProcessing = false;  // Re-enable recording after speech
+        startRecording();  // Restart recording
+        
     } catch (error) {
         console.error("Error with ElevenLabs TTS:", error);
-        // Fallback to browser TTS
-        textToSpeech(text);
+        isProcessing = false;
+        startRecording();
     }
 }
 
 // 4. Speech Recognition functions
 function startRecording() {
+    if (isProcessing) return;  // Don't start if still processing
+    
     console.log("Starting recording...");
     isRecording = true;
     micIcon.src = "anim.gif";
 
-    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-        console.error("Speech recognition is not supported in this browser.");
-        return;
-    }
-
     recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.interimResults = true;
-    recognition.continuous = true;  // Enable continuous recognition
+    recognition.continuous = false;  // Changed to false for better silence detection
 
     recognition.addEventListener('result', handleRecognitionResult);
     recognition.addEventListener('end', () => {
-        if (isRecording) {
+        if (isRecording && !isProcessing) {
             recognition.start();
         }
     });
 
-    recognition.addEventListener('speechstart', () => {
-        console.log('Speech detected');
-        clearTimeout(silenceTimer);
-    });
-
     recognition.addEventListener('speechend', () => {
         console.log('Speech ended');
-        // Start the silence timer
+        clearTimeout(silenceTimer);
         silenceTimer = setTimeout(() => {
-            if (isRecording) {
-                console.log('Silence detected, processing speech...');
+            if (isRecording && currentTranscript) {
                 processSpeechResult();
             }
         }, SILENCE_DURATION);
-    });
-
-    recognition.addEventListener('error', (event) => {
-        console.error('Speech recognition error', event.error);
     });
 
     try {
@@ -119,10 +116,13 @@ async function handleRecognitionResult(e) {
 
 async function processSpeechResult() {
     if (!currentTranscript) return;
-
-    console.log(`Processing: "${currentTranscript}"`);
     
     try {
+        // Disable recording while processing
+        isProcessing = true;
+        recognition.stop();
+        micIcon.src = "icon.png";
+
         const response = await fetch(`${API_URL}/api/chat`, {
             method: 'POST',
             headers: {
@@ -133,24 +133,15 @@ async function processSpeechResult() {
             body: JSON.stringify({ message: currentTranscript })
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
         const data = await response.json();
-        console.log('Received response:', data);
-        
         if (data.response) {
             await textToSpeechElevenLabs(data.response);
-        } else {
-            await textToSpeechElevenLabs("I received an empty response from the server.");
         }
     } catch (error) {
         console.error('Error communicating with API:', error);
         await textToSpeechElevenLabs("Sorry, I encountered an error processing your request.");
     }
 
-    // Clear the transcript after processing
     currentTranscript = '';
 }
 
@@ -170,10 +161,8 @@ function stopRecording() {
 
 // 5. Event Listeners
 mic.addEventListener('click', function() {
-    if (!isRecording) {
+    if (!isRecording && !isProcessing) {
         startRecording();
-    } else {
-        stopRecording();
     }
 });
 
