@@ -1,0 +1,94 @@
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { VRMLoaderPlugin } from '@pixiv/three-vrm';
+    import { BVHLoader } from 'three/addons/loaders/BVHLoader.js';
+
+    let scene, camera, renderer, controls;
+    let vrm, mixer, clip;
+    const clock = new THREE.Clock();
+
+    init();
+    animate();
+
+    function init() {
+        // Scene & Camera
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x444444);
+        camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 1.5, 3);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('container').appendChild(renderer.domElement);
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 1, 0);
+
+        // Light
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(0, 5, 5);
+        scene.add(dirLight);
+
+        // Grid
+        const gridHelper = new THREE.GridHelper(10, 10);
+        scene.add(gridHelper);
+
+        // Load VRM file
+        const loader = new GLTFLoader();
+        loader.register(parser => new VRMLoaderPlugin(parser));
+        loader.load('./model.vrm', (gltf) => {
+            vrm = gltf.userData.vrm;
+            scene.add(vrm.scene);
+            vrm.scene.position.set(0, 0, 0);
+            vrm.scene.rotation.set(0, Math.PI, 0);
+            console.log('[VRM] Loaded:', vrm);
+
+            // Traverse and log VRM bones
+            vrm.scene.traverse((object) => {
+                if (object.isBone) {
+                    console.log("VRM Bone:", object.name);
+                }
+            });
+
+            // Once VRM is loaded, load BVH animation
+            loadBVH('./sample.bvh');
+        });
+
+        window.addEventListener('resize', onWindowResize);
+    }
+
+    function loadBVH(filename) {
+        const bvhLoader = new BVHLoader();
+        bvhLoader.load(
+            filename,
+            (result) => {
+                console.log('[BVH] Loaded:', result);
+                clip = result.clip;
+
+                // Directly connect BVH animation to VRM model
+                connectAnimationToVRM(clip, vrm);
+            }
+        );
+    }
+
+    function connectAnimationToVRM(animationClip, vrm) {
+        mixer = new THREE.AnimationMixer(vrm.scene);
+        mixer.clipAction(animationClip).play();
+        console.log('[Animation] Connected directly to VRM model');
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        const delta = clock.getDelta();
+        if (mixer) mixer.update(delta);
+        renderer.render(scene, camera);
+    }
+</script>
