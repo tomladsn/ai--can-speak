@@ -1,4 +1,51 @@
-<script type="module">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VRM Viewer with BVH </title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #333;
+      color: #fff;
+    }
+    #container {
+      width: 100vw;
+      height: 100vh;
+    }
+    #uiPanel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      margin: 8px;
+      padding: 8px;
+      background: rgba(0,0,0,0.5);
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div id="uiPanel">
+    <h3>VRM + BVH Demo </h3>
+    <p>VRMファイル: <strong>My3DModel.vrm</strong></p>
+    <p>BVHファイル: <strong>MyMotion.bvh</strong></p>
+    <p>※モーションリターゲットなしで読み込むため、正しくアニメしない可能性大</p>
+  </div>
+
+  <div id="container"></div>
+
+  <!-- Import map for modules (three.js, three-vrm) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/",
+        "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3/lib/three-vrm.module.min.js"
+      }
+    }
+  </script>
+
+  <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -38,7 +85,7 @@
         // Load VRM file
         const loader = new GLTFLoader();
         loader.register(parser => new VRMLoaderPlugin(parser));
-        loader.load('./model.vrm', (gltf) => {
+        loader.load('./untit.vrm', (gltf) => {
             vrm = gltf.userData.vrm;
             scene.add(vrm.scene);
             vrm.scene.position.set(0, 0, 0);
@@ -92,3 +139,8 @@
         renderer.render(scene, camera);
     }
 </script>
+
+
+
+</body>
+</html>
